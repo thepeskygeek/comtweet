@@ -348,7 +348,7 @@ HEADER = """
   <h1>comtweet</h1>
   """
 
-FOOTER = "</body></html>"
+FOOTER = '<a href="http://twitter.com/comtweetapp">twitter</a> | <a href="http://github.com/andrewsteinborn/comtweet">code</a></body></html>'
 
 class Twt(RequestHandler):
 
@@ -364,7 +364,6 @@ class Twt(RequestHandler):
 	self.redirect('/')
 
 class MainHandler(RequestHandler):
-    """Demo Twitter App."""
 
     def get(self):
 
