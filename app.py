@@ -374,7 +374,7 @@ class MainHandler(RequestHandler):
         write = self.response.out.write; write(HEADER)
 
         if not client.get_cookie():
-            write('<a href="/oauth/twitter/login"><img src="/signin_twitter.png" alt="Sign in with Twitter"/></a>')
+            write('<a href="/oauth/twitter/login">Sign in to Twitter</a><br/>')
             write(FOOTER)
             return
 

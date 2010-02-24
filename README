@@ -1,0 +1,6 @@
+comtweet is a twitter application.
+
+comtweet uses tweetapp and thus has a oauth implementation inside that 
+you can hack upon.
+
+--andrewsteinborn
