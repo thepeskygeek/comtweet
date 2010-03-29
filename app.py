@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from hashlib import sha1
 from hmac import new as hmac
 from os.path import dirname, join as join_path
-from random import getrandbits, seed as rndseed
+from random import getrandbits
 from time import time
 from urllib import urlencode, quote as urlquote
 from uuid import uuid4
@@ -43,17 +43,6 @@ OAUTH_APP_SETTINGS = {
 
         },
 
-    'google': {
-
-        'consumer_key': '',
-        'consumer_secret': '',
-
-        'request_token_url': 'https://www.google.com/accounts/OAuthGetRequestToken',
-        'access_token_url': 'https://www.google.com/accounts/OAuthGetAccessToken',
-        'user_auth_url': 'https://www.google.com/accounts/OAuthAuthorizeToken',
-
-        },
-
     }
 
 CLEANUP_BATCH_SIZE = 100
@@ -63,8 +52,6 @@ try:
     from config import OAUTH_APP_SETTINGS
 except:
     pass
-
-STATIC_OAUTH_TIMESTAMP = 12345 # a workaround for clock skew/network lag
 
 # ------------------------------------------------------------------------------
 # utility functions
@@ -343,7 +330,10 @@ class OAuthHandler(RequestHandler):
 # ------------------------------------------------------------------------------
 
 HEADER = """
+  <!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN' 
+'http://www.w3.org/TR/html4/loose.dtd'>
   <html><head><title>comtweet</title>
+  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
   </head><body>
   <h1>comtweet</h1>
   """
@@ -367,9 +357,6 @@ class MainHandler(RequestHandler):
 
     def get(self):
 
-	rndseed(os.urandom(128))
-	rndseed(getrandbits(128) + long(time()))
-
         client = OAuthClient('twitter', self)
         write = self.response.out.write; write(HEADER)
 
@@ -384,21 +371,26 @@ class MainHandler(RequestHandler):
 
         write("Hello <strong>%s</strong><br />" % info['screen_name'])
 
-        write("<b>What are you doing?</b><br/>")
+        write("<h2>What are you doing?</h2>")
 	write("<form action='/twt' method='POST'/>")
 	write("<input name='twt'/>")
 	write("<input type='submit' value='Update'/>")
 	write("</form>")
 
 	write("<h2>Latest from your timeline</h2>")
-	t = client.get('/statuses/friends_timeline', extra_params={'count':10})
+	t = client.get('/statuses/home_timeline', extra_params={'count':15})
 	write("<ul>")
-	for h in range(10):
+	for h in range(15):
 		html = "<li><b>"
 		html += t[h]['user']['screen_name']
 		html += "</b>: "
 		html += t[h]['text']
-		html += "</li>"
+		if t[h].get('retweeted_status'):
+			html += " (retweeted, original status created via "
+		else:
+			html += " (via "
+		html += t[h]['source']
+		html += ")</li>"
 		write(html)
 
 	write("</ul>")
