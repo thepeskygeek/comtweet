@@ -361,20 +361,20 @@ class MainHandler(RequestHandler):
         write = self.response.out.write; write(HEADER)
 
         if not client.get_cookie():
-            write('<a href="/oauth/twitter/login">Sign in to Twitter</a><br/>')
+            write('<a href="/oauth/twitter/login">Sign in to Twitter</a><br>')
             write(FOOTER)
             return
 
-        write('<a href="/oauth/twitter/logout">Logout from Twitter</a><br /><br />')
+        write('<a href="/oauth/twitter/logout">Logout from Twitter</a><br><br>')
 
         info = client.get('/account/verify_credentials')
 
         write("Hello <strong>%s</strong><br />" % info['screen_name'])
 
         write("<h2>What are you doing?</h2>")
-	write("<form action='/twt' method='POST'/>")
-	write("<input name='twt'/>")
-	write("<input type='submit' value='Update'/>")
+	write("<form action='/twt' method='POST'>")
+	write("<input name='twt'>")
+	write("<input type='submit' value='Update'>")
 	write("</form>")
 
 	write("<h2>Latest from your timeline</h2>")
