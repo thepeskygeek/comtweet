@@ -369,7 +369,7 @@ class MainHandler(RequestHandler):
 
         info = client.get('/account/verify_credentials')
 
-        write("Hello <strong>%s</strong><br />" % info['screen_name'])
+        write("Hello <strong>%s</strong><br>" % info['screen_name'])
 
         write("<h2>What are you doing?</h2>")
 	write("<form action='/twt' method='POST'>")
