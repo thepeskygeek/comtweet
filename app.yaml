@@ -8,3 +8,4 @@ handlers:
   script: app.py
 - url: /robots.txt
   static_files: robots.txt
+  upload: robots.txt
