@@ -43,6 +43,22 @@ OAUTH_APP_SETTINGS = {
 
         },
 
+    'identica': {
+
+       # doesn't work for now, patches anyone?
+
+       'consumer_key': '50b51b4e1c69d0ab5c34aee9f64f84c0',
+       'consumer_secret': 'a480ced2dce1475fe2ca25cf9615e8a1',
+
+       'request_token_url': 'https://identi.ca/api/oauth/request_token',
+       'access_token_url': 'https://identi.ca/api/oauth/access_token',
+       'user_auth_url': 'https://identi.ca/api/oauth/authorize',
+
+       'default_api_prefix': 'https://identi.ca/api',
+       'default_api_suffix': '.json',
+
+       },
+
     }
 
 CLEANUP_BATCH_SIZE = 100
@@ -73,6 +89,8 @@ def twitter_specifier_handler(client):
     return client.get('/account/verify_credentials')['screen_name']
 
 OAUTH_APP_SETTINGS['twitter']['specifier_handler'] = twitter_specifier_handler
+# We cheated...
+OAUTH_APP_SETTINGS['identica']['specifier_handler'] = twitter_specifier_handler
 
 # ------------------------------------------------------------------------------
 # db entities
@@ -165,8 +183,8 @@ class OAuthClient(object):
         proxy_id = self.get_cookie()
 
         if proxy_id:
-            return "FOO%rFF" % proxy_id
             self.expire_cookie()
+            return "FOO%rFF" % proxy_id
 
         return self.get_request_token()
 
@@ -258,7 +276,7 @@ class OAuthClient(object):
             'oauth_signature_method': 'HMAC-SHA1',
             'oauth_version': '1.0',
             'oauth_timestamp': int(time()),
-            'oauth_nonce': getrandbits(48),
+            'oauth_nonce': getrandbits(64),
             }
 
         kwargs.update(extra_params)
@@ -294,7 +312,7 @@ class OAuthClient(object):
     def set_cookie(self, value, path='/'):
         self.handler.response.headers.add_header(
             'Set-Cookie', 
-            '%s=%s; path=%s; expires="Fri, 31-Dec-2021 23:59:59 GMT"' %
+            '%s=%s; path=%s' %
             ('oauth.%s' % self.service, value, path)
             )
 
@@ -348,7 +366,10 @@ class Twt(RequestHandler):
 		self.redirect('/')
 	client = OAuthClient('twitter', self)
 	if not client.get_cookie():
-		self.redirect('/')
+		# Try identica
+		#client = OAuthClient('identica', self)
+		#if not client.get_cookie():
+			self.redirect('/')
 
 	client.post('/statuses/update', status=twt)
 	self.redirect('/')
@@ -358,14 +379,24 @@ class MainHandler(RequestHandler):
     def get(self):
 
         client = OAuthClient('twitter', self)
+	#client_i = OAuthClient('identica', self)
+
         write = self.response.out.write; write(HEADER)
 
         if not client.get_cookie():
             write('<a href="/oauth/twitter/login">Sign in to Twitter</a><br>')
+          # write('<a href="/oauth/identica/login">Use Identi.ca</a><br>')
             write(FOOTER)
             return
 
-        write('<a href="/oauth/twitter/logout">Logout from Twitter</a><br><br>')
+	if client.get_cookie():
+        	write('<a href="/oauth/twitter/logout">Logout of Twitter</a><br><br>')
+		client_i = None
+		service_dealing = "twitter"
+	#else:
+	#	write('<a href="/oauth/identica/logout">Logout of Identi.ca</a><br><br>')
+	#	client = client_i
+	#	service_dealing = "identica"
 
         info = client.get('/account/verify_credentials')
 
@@ -378,7 +409,11 @@ class MainHandler(RequestHandler):
 	write("</form>")
 
 	write("<h2>Latest from your timeline</h2>")
-	t = client.get('/statuses/home_timeline', extra_params={'count':15})
+	#if service_dealing == 'twitter':
+		t = client.get('/statuses/home_timeline', extra_params={'count':15})
+	#else:
+	#	t = client.get('/statuses/friends_timeline', extra_params={'count': 15})
+
 	write("<ul>")
 	for h in range(15):
 		html = "<li><b>"
